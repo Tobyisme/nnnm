@@ -1,3 +1,8 @@
+import './styles/variables.css'
+import './styles/animations.css'
+import './styles/components.css'
+import './styles/layout.css'
+import './styles/utilities.css'
 import './assets/main.css'
 import { createApp } from 'vue'
 import App from './App.vue'

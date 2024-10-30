@@ -3,8 +3,10 @@ import { ref } from 'vue'
 import ProductManager from './components/ProductManager.vue'
 import CodeVerification from './components/CodeVerification.vue'
 import HomePage from './components/HomePage.vue'
+import OrderManager from './components/OrderManager.vue'
 import TabMenu from 'primevue/tabmenu'
 import Button from 'primevue/button'
+import UserProfile from './components/UserProfile.vue'
 
 const isVerified = ref(false)
 
@@ -28,8 +30,14 @@ const items = ref([
 
 const activeIndex = ref(1)
 
-const handleVerification = (success: boolean) => {
+const showUserProfile = ref(false)
+const userCode = ref('')
+
+const handleVerification = async (success: boolean, code: string) => {
   isVerified.value = success
+  if (success) {
+    userCode.value = code
+  }
 }
 </script>
 
@@ -52,10 +60,21 @@ const handleVerification = (success: boolean) => {
         <TabMenu :model="items" :activeIndex="activeIndex" />
         <div class="user-info">
           <Button icon="pi pi-bell" class="p-button-rounded p-button-text notification-btn" />
-          <Button icon="pi pi-user" class="p-button-rounded p-button-text user-btn" />
+          <Button 
+            icon="pi pi-user" 
+            class="p-button-rounded p-button-text user-btn"
+            @click="showUserProfile = true"
+          />
         </div>
       </div>
     </div>
+
+    <!-- 添加用戶個人主頁對話框 -->
+    <UserProfile
+  :visible="showUserProfile"
+  @update:visible="showUserProfile = $event"
+  :userCode="userCode"
+/>
 
     <!-- 主要內容區域 -->
     <div class="main-container">
@@ -63,9 +82,7 @@ const handleVerification = (success: boolean) => {
         <div class="content-inner">
           <ProductManager v-if="activeIndex === 1" />
           <HomePage v-else-if="activeIndex === 0" />
-          <div v-else-if="activeIndex === 2" class="page-content orders">
-            <h2 class="page-title">訂單管理</h2>
-          </div>
+          <OrderManager v-else-if="activeIndex === 2" />
         </div>
       </div>
     </div>
@@ -92,18 +109,19 @@ const handleVerification = (success: boolean) => {
   box-shadow: var(--shadow-md);
   z-index: 1000;
   backdrop-filter: blur(10px);
+  display: flex;
+  justify-content: center;
 }
 
 .navbar-content {
-  max-width: 1920px;
-  margin: 0 auto;
+  max-width: 1400px;
+  width: 100%;
   height: 100%;
+  margin: 0 auto;
+  padding: 0 2rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 2rem;
-  position: relative;
-  z-index: 1001;
 }
 
 /* Logo 優化 */
@@ -127,28 +145,59 @@ const handleVerification = (success: boolean) => {
   letter-spacing: -0.5px;
 }
 
-/* TabMenu 優化 */
+/* TabMenu 樣式優化 */
 :deep(.p-tabmenu) {
-  margin: 0 2rem;
-  flex: 1;
-}
-
-:deep(.p-tabmenu .p-tabmenu-nav) {
-  justify-content: center;
-  border: none;
   background: transparent;
 }
 
-:deep(.p-tabmenu .p-tabmenu-nav .p-tabmenuitem .p-menuitem-link) {
-  padding: 0.75rem 1.25rem;
-  border-radius: 8px;
-  transition: all 0.2s ease;
+:deep(.p-tabmenu .p-tabmenu-nav) {
+  background: transparent;
   border: none;
+  padding: 0;
+  gap: 0.5rem;
 }
 
+:deep(.p-tabmenu .p-tabmenu-nav .p-tabmenuitem) {
+  margin: 0;
+}
+
+:deep(.p-tabmenu .p-tabmenu-nav .p-tabmenuitem .p-menuitem-link) {
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* 圖標樣式 */
+.p-menuitem-icon {
+  font-size: 1.2rem;
+  margin-right: 0.75rem;
+}
+
+/* 文字樣式 */
+.p-menuitem-text {
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+/* 選中狀態 */
 :deep(.p-tabmenu .p-tabmenu-nav .p-tabmenuitem.p-highlight .p-menuitem-link) {
   background: var(--primary-light);
   color: var(--primary-color);
+  font-weight: 600;
+  
+  /* 添加微妙的陰影效果 */
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.15);
+}
+
+/* 懸停效果 */
+:deep(.p-tabmenu .p-tabmenu-nav .p-tabmenuitem .p-menuitem-link:not(.p-disabled):hover) {
+  background: rgba(33, 150, 243, 0.05);
+  transform: translateY(-1px);
 }
 
 /* 用戶信息區域優化 */
@@ -172,34 +221,52 @@ const handleVerification = (success: boolean) => {
 }
 
 /* 主容器優化 */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+}
+
 .main-container {
-  margin-top: 90px;
+  flex: 1;
+  margin-top: 70px;
   padding: 2rem;
   background: var(--background-color);
-  min-height: calc(100vh - 70px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
 }
 
 .content-wrapper {
-  max-width: 1920px;
+  width: 100%;
+  max-width: 1400px;
   margin: 0 auto;
+  padding: 0 2rem;
 }
 
 .content-inner {
   background: white;
   border-radius: 16px;
   box-shadow: var(--shadow-md);
-  min-height: calc(100vh - 250px);
+  width: 100%;
+  min-height: calc(100vh - 200px);
 }
 
 /* 頁腳優化 */
 .footer {
-  margin-top: auto;
+  width: 100%;
   padding: 1.5rem 0;
   background: white;
   border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: center;
 }
 
 .footer-content {
+  max-width: 1400px;
+  width: 100%;
+  padding: 0 2rem;
   text-align: center;
   color: var(--text-secondary);
   font-size: 0.875rem;
@@ -239,5 +306,72 @@ const handleVerification = (success: boolean) => {
     margin-top: 0;
     padding: 1rem;
   }
+
+  /* 修改菜單項的排列方式 */
+  :deep(.p-tabmenu .p-tabmenu-nav .p-tabmenuitem .p-menuitem-link) {
+    flex-direction: column;  /* 改為垂直排列 */
+    padding: 0.75rem;       /* 調整內邊距 */
+    gap: 0.5rem;           /* 調整圖標和文字的間距 */
+    min-width: 80px;       /* 設置最小寬度 */
+    text-align: center;    /* 文字居中 */
+  }
+
+  :deep(.p-tabmenu .p-tabmenu-nav .p-tabmenuitem .p-menuitem-link .p-menuitem-icon) {
+    font-size: 1.5rem;     /* 增大圖標尺寸 */
+    margin-right: 0;       /* 移除右邊距 */
+  }
+
+  :deep(.p-tabmenu .p-tabmenu-nav .p-tabmenuitem .p-menuitem-link .p-menuitem-text) {
+    font-size: 0.875rem;   /* 稍微縮小文字 */
+  }
+
+  :deep(.p-tabmenu .p-tabmenu-nav) {
+    justify-content: center; /* 確保菜單項居中 */
+    gap: 0.5rem;            /* 調整項目間距 */
+  }
+}
+
+/* iOS 安全區域適配 */
+:root {
+  --safe-area-inset-top: env(safe-area-inset-top);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom);
+  --safe-area-inset-left: env(safe-area-inset-left);
+  --safe-area-inset-right: env(safe-area-inset-right);
+}
+
+.app-container {
+  padding-top: var(--safe-area-inset-top);
+  padding-bottom: var(--safe-area-inset-bottom);
+  padding-left: var(--safe-area-inset-left);
+  padding-right: var(--safe-area-inset-right);
+}
+
+/* iOS 風格優化 */
+.navbar {
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+/* 禁用文本選擇 */
+* {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* 允許輸入框文本選擇 */
+input, textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* iOS 點擊高亮效果 */
+a, button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 滾動優化 */
+.content-inner {
+  -webkit-overflow-scrolling: touch;
 }
 </style>

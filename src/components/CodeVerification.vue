@@ -1,35 +1,66 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { supabase } from '@/supabase'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
 
 const emit = defineEmits<{
-  'verify': [success: boolean]
+  'verify': [success: boolean, code: string]
 }>()
 
 const code = ref('')
 const errorMessage = ref('')
 const isLoading = ref(false)
+const codeInput = ref<HTMLElement | null>(null)
 
-// 在這裡設定驗證碼
-const VERIFICATION_CODE = '1234' // 直接修改這個值來更改驗證碼
-
-const verifyCode = () => {
+// 驗證碼檢查函數
+const verifyCode = async () => {
   isLoading.value = true
   errorMessage.value = ''
   
   const inputCode = code.value.trim()
   
-  setTimeout(() => {
-    if (inputCode === VERIFICATION_CODE) {
-      emit('verify', true)
+  try {
+    console.log('正在驗證碼:', inputCode)
+    
+    // 先檢查用戶表中是否有對應的驗證碼
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('code', inputCode)
+      .single()
+
+    if (userError) {
+      if (userError.code === 'PGRST116') {
+        errorMessage.value = '驗證碼錯誤，請重新輸入'
+        code.value = ''
+        return
+      }
+      throw userError
+    }
+
+    if (userData) {
+      // 驗證成功
+      console.log('驗證成功，用戶數據:', userData)
+      emit('verify', true, inputCode)
     } else {
+      // 未找到對應用戶
       errorMessage.value = '驗證碼錯誤，請重新輸入'
       code.value = ''
     }
+  } catch (error) {
+    console.error('驗證碼檢查失敗:', error)
+    errorMessage.value = '系統錯誤，請稍後再試'
+  } finally {
     isLoading.value = false
-  }, 500)
+  }
 }
+
+// 修改自動聚焦邏輯
+onMounted(() => {
+  // 使用可選鏈和類型斷言
+  (codeInput.value as HTMLInputElement)?.focus?.()
+})
 </script>
 
 <template>
@@ -38,7 +69,7 @@ const verifyCode = () => {
       <div class="logo-section">
         <i class="pi pi-shopping-bag"></i>
         <h1>儀優管理系統</h1>
-        <p class="subtitle">操你媽</p>
+        <p class="subtitle">庫存管理系統</p>
       </div>
       
       <div class="form-section">
@@ -51,6 +82,7 @@ const verifyCode = () => {
           <span class="p-input-icon-left w-full">
             <i class="pi pi-lock"></i>
             <InputText 
+              ref="codeInput"
               v-model="code" 
               type="password"
               placeholder="請輸入驗證碼"

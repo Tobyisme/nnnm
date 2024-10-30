@@ -26,7 +26,7 @@ const openMarketplace = (url: string) => {
 <template>
   <div class="home-container">
     <div class="welcome-section">
-      <h1>歡迎使用儀優管理系統</h1>
+      <h1>儀優管理系統</h1>
       <p class="subtitle">操你媽</p>
     </div>
 

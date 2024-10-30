@@ -3,18 +3,45 @@
   <head>
     <meta charset="UTF-8">
     <link rel="icon" href="/favicon.ico">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>商店管理系統</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>儀優管理系統</title>
+    
+    <!-- iOS 狀態欄樣式 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- iOS 啟動畫面 -->
+    <link rel="apple-touch-startup-image" href="/splash/launch.png">
+    <link rel="apple-touch-icon" href="/icons/icon.png">
+    
     <!-- PrimeVue CSS -->
     <link href="https://unpkg.com/primevue@^3/resources/themes/saga-blue/theme.css" rel="stylesheet">
     <link href="https://unpkg.com/primevue@^3/resources/primevue.min.css" rel="stylesheet">
     <link href="https://unpkg.com/primeicons@^6/primeicons.css" rel="stylesheet">
     <link href="https://unpkg.com/primeflex@^3/primeflex.min.css" rel="stylesheet">
+    
     <style>
       body {
         background-color: #ffffff !important;
         margin: 0;
         padding: 0;
+        /* iOS 滾動優化 */
+        -webkit-overflow-scrolling: touch;
+        /* 禁用文字選擇 */
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+
+      /* 允許輸入框文字選擇 */
+      input, textarea {
+        -webkit-user-select: text;
+        user-select: text;
+      }
+
+      /* 移除點擊高亮 */
+      * {
+        -webkit-tap-highlight-color: transparent;
       }
     </style>
   </head>
