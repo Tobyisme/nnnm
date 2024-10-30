@@ -1,10 +1,20 @@
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase credentials')
+if (!supabaseUrl || !supabaseKey) {
+  console.error('Supabase 配置缺失')
+  throw new Error('Missing Supabase configuration')
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(supabaseUrl, supabaseKey)
+
+// 添加連接測試
+supabase.auth.getSession().then(({ data, error }) => {
+  if (error) {
+    console.error('Supabase 連接錯誤:', error)
+  } else {
+    console.log('Supabase 連接成功')
+  }
+})

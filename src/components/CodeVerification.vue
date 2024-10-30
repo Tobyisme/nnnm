@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { supabase } from '@/supabase'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
@@ -11,9 +11,7 @@ const emit = defineEmits<{
 const code = ref('')
 const errorMessage = ref('')
 const isLoading = ref(false)
-const codeInput = ref<HTMLElement | null>(null)
 
-// 驗證碼檢查函數
 const verifyCode = async () => {
   isLoading.value = true
   errorMessage.value = ''
@@ -21,16 +19,19 @@ const verifyCode = async () => {
   const inputCode = code.value.trim()
   
   try {
-    console.log('正在驗證碼:', inputCode)
+    console.log('開始驗證碼檢查:', inputCode)
     
-    // 先檢查用戶表中是否有對應的驗證碼
+    // 檢查用戶表中是否有對應的驗證碼
     const { data: userData, error: userError } = await supabase
       .from('users')
-      .select('*')
+      .select('id, name, code, is_admin')
       .eq('code', inputCode)
       .single()
 
+    console.log('用戶查詢結果:', userData, '錯誤:', userError)
+
     if (userError) {
+      console.error('用戶查詢錯誤:', userError)
       if (userError.code === 'PGRST116') {
         errorMessage.value = '驗證碼錯誤，請重新輸入'
         code.value = ''
@@ -39,28 +40,73 @@ const verifyCode = async () => {
       throw userError
     }
 
-    if (userData) {
-      // 驗證成功
-      console.log('驗證成功，用戶數據:', userData)
-      emit('verify', true, inputCode)
-    } else {
-      // 未找到對應用戶
+    if (!userData) {
+      console.log('未找到用戶數據')
       errorMessage.value = '驗證碼錯誤，請重新輸入'
       code.value = ''
+      return
     }
+
+    // 使用臨時郵箱進行登入
+    console.log('驗證成功，開始登入')
+    const tempEmail = `user_${userData.id}@temp.com`
+    const tempPassword = `${inputCode}_${userData.id}`
+    
+    try {
+      // 先嘗試註冊
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: tempEmail,
+        password: tempPassword
+      })
+      
+      if (signUpError && signUpError.message !== 'User already registered') {
+        throw signUpError
+      }
+      
+      // 然後進行登入
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: tempEmail,
+        password: tempPassword
+      })
+      
+      if (signInError) throw signInError
+      
+      console.log('登入成功:', signInData)
+
+      if (signInData.user) {
+        console.log('開始更新用戶 auth_id')
+        // 更新用戶的 auth_id
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({ 
+            auth_id: signInData.user.id,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', userData.id)
+          .select()
+
+        console.log('更新用戶結果 錯誤:', updateError)
+
+        if (updateError) {
+          console.error('更新用戶 auth_id 失敗:', updateError)
+          throw updateError
+        }
+      }
+
+      console.log('驗證流程完成，發送成功事件')
+      emit('verify', true, inputCode)
+    } catch (authError) {
+      console.error('認證過程錯誤:', authError)
+      throw authError
+    }
+
   } catch (error) {
-    console.error('驗證碼檢查失敗:', error)
+    console.error('驗證過程發生錯誤:', error)
     errorMessage.value = '系統錯誤，請稍後再試'
   } finally {
     isLoading.value = false
   }
 }
-
-// 修改自動聚焦邏輯
-onMounted(() => {
-  // 使用可選鏈和類型斷言
-  (codeInput.value as HTMLInputElement)?.focus?.()
-})
 </script>
 
 <template>

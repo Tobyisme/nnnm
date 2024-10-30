@@ -17,6 +17,7 @@ import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
 import TabMenu from 'primevue/tabmenu'
+import ToastService from 'primevue/toastservice'
 
 // 導入 PrimeVue 樣式
 import 'primevue/resources/themes/saga-blue/theme.css'     // 主題
@@ -31,6 +32,7 @@ app.use(PrimeVue, {
     ripple: true,
     inputStyle: "filled"
 })
+app.use(ToastService)
 
 // 註冊組件
 app.component('Button', Button)
