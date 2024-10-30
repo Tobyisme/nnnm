@@ -18,7 +18,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:visible': [value: boolean]
-  'save': [product: Product]
+  'add': [product: Product]
 }>()
 
 const newProduct = ref<Product>({
@@ -33,7 +33,7 @@ const handleSave = () => {
     alert('請輸入商品名稱')
     return
   }
-  emit('save', { ...newProduct.value })
+  emit('add', { ...newProduct.value })
   newProduct.value = {
     name: '',
     retail_price: 0,
