@@ -4,7 +4,7 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [vuePlugin.default()],
-  base: './',
+  base: '/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -22,6 +22,11 @@ export default defineConfig({
     },
     sourcemap: false,
     chunkSizeWarningLimit: 1500,
+    rollupOptions: {
+      output: {
+        manualChunks: undefined
+      }
+    }
   },
   server: {
     host: true,
