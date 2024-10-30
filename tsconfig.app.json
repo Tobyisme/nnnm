@@ -8,11 +8,10 @@
     "paths": {
       "@/*": ["./src/*"]
     },
+    "moduleResolution": "Bundler",
     "allowJs": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "noImplicitAny": false,
-    "moduleResolution": "node",
-    "types": ["node"]
+    "noImplicitAny": false
   }
 }
